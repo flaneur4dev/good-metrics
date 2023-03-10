@@ -30,7 +30,12 @@ func New(rep Adder) http.HandlerFunc {
 
 		err := rep.Add(pathSlice[2], pathSlice[3], pathSlice[4])
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusNotImplemented)
+			sc := http.StatusBadRequest
+			em := err.Error()
+			if em == "unknown metric type" {
+				sc = http.StatusNotImplemented
+			}
+			http.Error(w, em, sc)
 			return
 		}
 
