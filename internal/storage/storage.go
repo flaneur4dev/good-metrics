@@ -24,17 +24,17 @@ func (ms *MemStorage) Add(t, n, v string) error {
 	case "gauge":
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
-			return errors.New("Invalid data")
+			return errors.New("invalid data")
 		}
 		ms.gauge[n] = cs.Gauge(f)
 	case "counter":
 		i, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
-			return errors.New("Invalid data")
+			return errors.New("invalid data")
 		}
 		ms.counter[n] += cs.Counter(i)
 	default:
-		return errors.New("Missed metric type")
+		return errors.New("unknown metric type")
 	}
 
 	return nil

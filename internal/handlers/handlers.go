@@ -16,21 +16,21 @@ func New(rep Adder) http.HandlerFunc {
 			return
 		}
 
-		if ct := r.Header.Get("Content-Type"); ct != "text/plain" {
-			http.Error(w, "Bad request", http.StatusBadRequest)
-			return
-		}
+		// if ct := r.Header.Get("Content-Type"); ct != "text/plain" {
+		// 	http.Error(w, "Bad request", http.StatusBadRequest)
+		// 	return
+		// }
 
 		// "path = /update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>"
 		pathSlice := strings.Split(r.URL.Path, "/")
 		if len(pathSlice) != 5 {
-			http.Error(w, "Bad request", http.StatusBadRequest)
+			http.Error(w, "Not found", http.StatusNotFound)
 			return
 		}
 
 		err := rep.Add(pathSlice[2], pathSlice[3], pathSlice[4])
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
+			http.Error(w, err.Error(), http.StatusNotImplemented)
 			return
 		}
 
