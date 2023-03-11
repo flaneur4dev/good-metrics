@@ -37,7 +37,7 @@ func TestAdd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ms.Add(tt.t, tt.n, tt.v); err != tt.want {
+			if err := ms.Update(tt.t, tt.n, tt.v); err != tt.want {
 				t.Errorf("Add() = %v, want: %v", err, tt.want)
 			}
 		})

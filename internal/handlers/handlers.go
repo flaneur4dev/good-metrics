@@ -1,34 +1,31 @@
 package handlers
 
 import (
+	"html/template"
 	"net/http"
-	"strings"
+
+	"github.com/go-chi/chi/v5"
 )
 
-type Adder interface {
-	Add(t, n, v string) error
-}
+type (
+	Metrics interface {
+		AllMetrics() ([]string, []string)
+	}
+	Metric interface {
+		OneMetric(t, n string) (string, error)
+	}
+	Updater interface {
+		Update(t, n, v string) error
+	}
+)
 
-func New(rep Adder) http.HandlerFunc {
+func HandleUpdate(rep Updater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if r.Method != http.MethodPost {
-			http.Error(w, "Only POST requests are allowed!", http.StatusMethodNotAllowed)
-			return
-		}
+		mType := chi.URLParam(r, "mType")
+		mName := chi.URLParam(r, "mName")
+		mValue := chi.URLParam(r, "mValue")
 
-		// if ct := r.Header.Get("Content-Type"); ct != "text/plain" {
-		// 	http.Error(w, "Bad request", http.StatusBadRequest)
-		// 	return
-		// }
-
-		// "path = /update/<ТИП_МЕТРИКИ>/<ИМЯ_МЕТРИКИ>/<ЗНАЧЕНИЕ_МЕТРИКИ>"
-		pathSlice := strings.Split(r.URL.Path, "/")
-		if len(pathSlice) != 5 {
-			http.Error(w, "Not found", http.StatusNotFound)
-			return
-		}
-
-		err := rep.Add(pathSlice[2], pathSlice[3], pathSlice[4])
+		err := rep.Update(mType, mName, mValue)
 		if err != nil {
 			sc := http.StatusBadRequest
 			em := err.Error()
@@ -42,3 +39,79 @@ func New(rep Adder) http.HandlerFunc {
 		w.WriteHeader(http.StatusOK)
 	}
 }
+
+func HandleMetric(rep Metric) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		mType := chi.URLParam(r, "mType")
+		mName := chi.URLParam(r, "mName")
+
+		v, err := rep.OneMetric(mType, mName)
+		if err != nil {
+			sc := http.StatusNotFound
+			em := err.Error()
+			if em == "unknown metric type" {
+				sc = http.StatusNotImplemented
+			}
+			http.Error(w, em, sc)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(v))
+	}
+}
+
+func HandleMetrics(rep Metrics) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		gm, cm := rep.AllMetrics()
+
+		t, err := template.New("metrics webpage").Parse(tmpl)
+		if err != nil {
+			http.Error(w, "Somthing went wrong", http.StatusInternalServerError)
+			return
+		}
+
+		data := struct {
+			Title   string
+			GMetics []string
+			CMetics []string
+		}{
+			Title:   "Good metrics",
+			GMetics: gm,
+			CMetics: cm,
+		}
+
+		err = t.Execute(w, data)
+		if err != nil {
+			http.Error(w, "Somthing went wrong", http.StatusInternalServerError)
+			return
+		}
+	}
+}
+
+const tmpl = `
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="UTF-8">
+		<title>{{.Title}}</title>
+	</head>
+	<body style="margin-left: 50px;">
+		<h1>Метрики</h1>
+		<div style="display: flex; gap: 100px;">
+			<div>
+				<h2 style="color: #9a9a9a;">Тип gauge:</h2>
+				<ul>
+					{{range .GMetics}}<li>{{ . }}</li>{{else}}<p>Нет данных</p>{{end}}
+				</ul>
+			</div>
+			<div>
+				<h2 style="color: #9a9a9a;">Тип counter:</h2>
+				<ul>
+					{{range .CMetics}}<li>{{ . }}</li>{{else}}<p>Нет данных</p>{{end}}
+				</ul>			
+			</div>
+		</div>
+	</body>
+</html>
+`
