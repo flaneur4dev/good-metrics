@@ -26,7 +26,7 @@ func (ms *MemStorage) AllMetrics() ([]string, []string) {
 
 	i := 0
 	for k, v := range ms.gauge {
-		gm[i] = fmt.Sprintf("%s: %.4f", k, v)
+		gm[i] = fmt.Sprintf("%s: %.3f", k, v)
 		i++
 	}
 
