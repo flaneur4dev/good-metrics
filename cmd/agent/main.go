@@ -24,11 +24,11 @@ func main() {
 
 		if int(t.Sub(start).Seconds())%reportInterval == 0 {
 			for k, v := range metrics.List {
-				api.Fetch(http.MethodPost, fmt.Sprintf("update/%s/%.4f", k, v()), nil)
+				api.Fetch(http.MethodPost, fmt.Sprintf("update/%s/%.3f", k, v()), nil)
 			}
 
 			api.Fetch(http.MethodPost, fmt.Sprintf("update/counter/PollCount/%d", metrics.PollCount), nil)
-			api.Fetch(http.MethodPost, fmt.Sprintf("update/gauge/RandomValue/%.4f", metrics.RandomValue), nil)
+			api.Fetch(http.MethodPost, fmt.Sprintf("update/gauge/RandomValue/%.3f", metrics.RandomValue), nil)
 		}
 	}
 }

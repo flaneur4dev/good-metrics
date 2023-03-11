@@ -44,13 +44,13 @@ func (ms *MemStorage) OneMetric(t, n string) (string, error) {
 	case "gauge":
 		v, ok := ms.gauge[n]
 		if !ok {
-			return "", errors.New("No such metric")
+			return "", errors.New("no such metric")
 		}
-		return fmt.Sprintf("%.4f", v), nil
+		return fmt.Sprintf("%.3f", v), nil
 	case "counter":
 		v, ok := ms.counter[n]
 		if !ok {
-			return "", errors.New("No such metric")
+			return "", errors.New("no such metric")
 		}
 		return fmt.Sprintf("%d", v), nil
 	default:
