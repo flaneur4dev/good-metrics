@@ -1,11 +1,11 @@
 package storage
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
 	cs "github.com/flaneur4dev/good-metrics/internal/contracts"
+	e "github.com/flaneur4dev/good-metrics/internal/lib/mistakes"
 )
 
 type MemStorage struct {
@@ -44,17 +44,17 @@ func (ms *MemStorage) OneMetric(t, n string) (string, error) {
 	case "gauge":
 		v, ok := ms.gauge[n]
 		if !ok {
-			return "", errors.New("no such metric")
+			return "", e.ErrNoMetric
 		}
 		return fmt.Sprintf("%.3f", v), nil
 	case "counter":
 		v, ok := ms.counter[n]
 		if !ok {
-			return "", errors.New("no such metric")
+			return "", e.ErrNoMetric
 		}
 		return fmt.Sprintf("%d", v), nil
 	default:
-		return "", errors.New("unknown metric type")
+		return "", e.ErrUnkownMetricType
 	}
 }
 
@@ -63,17 +63,17 @@ func (ms *MemStorage) Update(t, n, v string) error {
 	case "gauge":
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
-			return errors.New("invalid data")
+			return e.ErrInvalidData
 		}
 		ms.gauge[n] = cs.Gauge(f)
 	case "counter":
 		i, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
-			return errors.New("invalid data")
+			return e.ErrInvalidData
 		}
 		ms.counter[n] += cs.Counter(i)
 	default:
-		return errors.New("unknown metric type")
+		return e.ErrUnkownMetricType
 	}
 
 	return nil

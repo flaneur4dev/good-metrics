@@ -1,10 +1,13 @@
 package handlers
 
 import (
+	"errors"
 	"html/template"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+
+	e "github.com/flaneur4dev/good-metrics/internal/lib/mistakes"
 )
 
 type (
@@ -28,11 +31,10 @@ func HandleUpdate(rep Updater) http.HandlerFunc {
 		err := rep.Update(mType, mName, mValue)
 		if err != nil {
 			sc := http.StatusBadRequest
-			em := err.Error()
-			if em == "unknown metric type" {
+			if errors.Is(err, e.ErrUnkownMetricType) {
 				sc = http.StatusNotImplemented
 			}
-			http.Error(w, em, sc)
+			http.Error(w, err.Error(), sc)
 			return
 		}
 
@@ -48,11 +50,10 @@ func HandleMetric(rep Metric) http.HandlerFunc {
 		v, err := rep.OneMetric(mType, mName)
 		if err != nil {
 			sc := http.StatusNotFound
-			em := err.Error()
-			if em == "unknown metric type" {
+			if errors.Is(err, e.ErrUnkownMetricType) {
 				sc = http.StatusNotImplemented
 			}
-			http.Error(w, em, sc)
+			http.Error(w, err.Error(), sc)
 			return
 		}
 

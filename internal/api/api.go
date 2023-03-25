@@ -5,7 +5,6 @@ import (
 	"io"
 	"net/http"
 	// "net/http/httputil"
-	"os"
 )
 
 var (
@@ -20,7 +19,7 @@ func Fetch(method, endpoint string, body io.Reader) {
 	request, err := http.NewRequest(method, baseURL+"/"+endpoint, body)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		return
 	}
 	request.Header = headers
 
@@ -34,13 +33,13 @@ func Fetch(method, endpoint string, body io.Reader) {
 	response, err := client.Do(request)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		return
 	}
 
 	resBody, err := io.ReadAll(response.Body)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		return
 	}
 	response.Body.Close()
 

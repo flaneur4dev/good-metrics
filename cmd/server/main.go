@@ -18,5 +18,8 @@ func main() {
 	r.Get("/value/{mType}/{mName}", handlers.HandleMetric(ms))
 	r.Post("/update/{mType}/{mName}/{mValue}", handlers.HandleUpdate(ms))
 
-	log.Fatal(http.ListenAndServe(":8080", r))
+	err := http.ListenAndServe(":8080", r)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
