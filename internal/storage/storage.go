@@ -58,23 +58,26 @@ func (ms *MemStorage) OneMetric(t, n string) (string, error) {
 	}
 }
 
-func (ms *MemStorage) Update(t, n, v string) error {
+func (ms *MemStorage) Update(t, n, v string) (string, error) {
 	switch t {
 	case "gauge":
 		f, err := strconv.ParseFloat(v, 64)
 		if err != nil {
-			return e.ErrInvalidData
+			return "", e.ErrInvalidData
 		}
+
 		ms.gauge[n] = cs.Gauge(f)
+		return v, nil
 	case "counter":
 		i, err := strconv.ParseInt(v, 10, 64)
 		if err != nil {
-			return e.ErrInvalidData
+			return "", e.ErrInvalidData
 		}
-		ms.counter[n] += cs.Counter(i)
-	default:
-		return e.ErrUnkownMetricType
-	}
 
-	return nil
+		ms.counter[n] += cs.Counter(i)
+		nv := ms.counter[n]
+		return fmt.Sprintf("%d", nv), nil
+	default:
+		return "", e.ErrUnkownMetricType
+	}
 }

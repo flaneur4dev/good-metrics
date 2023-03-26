@@ -1,12 +1,17 @@
 package handlers
 
 import (
+	"encoding/json"
 	"errors"
+	"fmt"
 	"html/template"
+	"io"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 
+	cs "github.com/flaneur4dev/good-metrics/internal/contracts"
 	e "github.com/flaneur4dev/good-metrics/internal/lib/mistakes"
 )
 
@@ -18,9 +23,23 @@ type (
 		OneMetric(t, n string) (string, error)
 	}
 	Updater interface {
-		Update(t, n, v string) error
+		Update(t, n, v string) (string, error)
 	}
 )
+
+func setMetric(res *cs.Metrics, v string) {
+	if res.MType == "gauge" {
+		f, _ := strconv.ParseFloat(v, 64)
+		value := cs.Gauge(f)
+		res.Value = &value
+		res.Delta = nil
+	} else {
+		d, _ := strconv.ParseInt(v, 10, 64)
+		value := cs.Counter(d)
+		res.Value = nil
+		res.Delta = &value
+	}
+}
 
 func HandleUpdate(rep Updater) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -28,7 +47,7 @@ func HandleUpdate(rep Updater) http.HandlerFunc {
 		mName := chi.URLParam(r, "mName")
 		mValue := chi.URLParam(r, "mValue")
 
-		err := rep.Update(mType, mName, mValue)
+		_, err := rep.Update(mType, mName, mValue)
 		if err != nil {
 			sc := http.StatusBadRequest
 			if errors.Is(err, e.ErrUnkownMetricType) {
@@ -39,6 +58,52 @@ func HandleUpdate(rep Updater) http.HandlerFunc {
 		}
 
 		w.WriteHeader(http.StatusOK)
+	}
+}
+
+func HandleUpdateJSON(rep Updater) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		reqBody, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		var res cs.Metrics
+		err = json.Unmarshal(reqBody, &res)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		var value string
+		if res.Value != nil && res.Delta == nil {
+			value = fmt.Sprintf("%.3f", *res.Value)
+		}
+		if res.Delta != nil && res.Value == nil {
+			value = fmt.Sprintf("%d", *res.Delta)
+		}
+
+		v, err := rep.Update(res.MType, res.ID, value)
+		if err != nil {
+			sc := http.StatusBadRequest
+			if errors.Is(err, e.ErrUnkownMetricType) {
+				sc = http.StatusNotImplemented
+			}
+			http.Error(w, err.Error(), sc)
+			return
+		}
+
+		setMetric(&res, v)
+
+		b, err := json.Marshal(res)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(b)
 	}
 }
 
@@ -59,6 +124,44 @@ func HandleMetric(rep Metric) http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(v))
+	}
+}
+
+func HandleMetricJSON(rep Metric) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		reqBody, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		var res cs.Metrics
+		err = json.Unmarshal(reqBody, &res)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		v, err := rep.OneMetric(res.MType, res.ID)
+		if err != nil {
+			sc := http.StatusNotFound
+			if errors.Is(err, e.ErrUnkownMetricType) {
+				sc = http.StatusNotImplemented
+			}
+			http.Error(w, err.Error(), sc)
+			return
+		}
+
+		setMetric(&res, v)
+
+		b, err := json.Marshal(res)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
+		w.Write(b)
 	}
 }
 

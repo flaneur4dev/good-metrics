@@ -7,43 +7,61 @@ import (
 	cs "github.com/flaneur4dev/good-metrics/internal/contracts"
 )
 
+type ClientMetrics cs.Metrics
+
+func (cm *ClientMetrics) AddValue(n string, v cs.Gauge) {
+	cm.ID = n
+	cm.MType = "gauge"
+	cm.Delta = nil
+	cm.Value = &v
+}
+
+func (cm *ClientMetrics) AddDelta(n string, v cs.Counter) {
+	cm.ID = n
+	cm.MType = "counter"
+	cm.Delta = &v
+	cm.Value = nil
+}
+
 var (
 	ms          = &runtime.MemStats{}
+	CMetrics    = &ClientMetrics{}
 	PollCount   cs.Counter
-	RandomValue = rand.Float64()
+	randomValue = rand.Float64()
 	List        = map[string]func() cs.Gauge{
-		"gauge/Alloc":         func() cs.Gauge { return cs.Gauge(ms.Alloc) },
-		"gauge/BuckHashSys":   func() cs.Gauge { return cs.Gauge(ms.BuckHashSys) },
-		"gauge/Frees":         func() cs.Gauge { return cs.Gauge(ms.Frees) },
-		"gauge/GCCPUFraction": func() cs.Gauge { return cs.Gauge(ms.GCCPUFraction) },
-		"gauge/GCSys":         func() cs.Gauge { return cs.Gauge(ms.GCSys) },
-		"gauge/HeapAlloc":     func() cs.Gauge { return cs.Gauge(ms.HeapAlloc) },
-		"gauge/HeapIdle":      func() cs.Gauge { return cs.Gauge(ms.HeapIdle) },
-		"gauge/HeapInuse":     func() cs.Gauge { return cs.Gauge(ms.HeapInuse) },
-		"gauge/HeapObjects":   func() cs.Gauge { return cs.Gauge(ms.HeapObjects) },
-		"gauge/HeapReleased":  func() cs.Gauge { return cs.Gauge(ms.HeapReleased) },
-		"gauge/HeapSys":       func() cs.Gauge { return cs.Gauge(ms.HeapSys) },
-		"gauge/LastGC":        func() cs.Gauge { return cs.Gauge(ms.LastGC) },
-		"gauge/Lookups":       func() cs.Gauge { return cs.Gauge(ms.Lookups) },
-		"gauge/MCacheInuse":   func() cs.Gauge { return cs.Gauge(ms.MCacheInuse) },
-		"gauge/MCacheSys":     func() cs.Gauge { return cs.Gauge(ms.MCacheSys) },
-		"gauge/MSpanInuse":    func() cs.Gauge { return cs.Gauge(ms.MSpanInuse) },
-		"gauge/MSpanSys":      func() cs.Gauge { return cs.Gauge(ms.MSpanSys) },
-		"gauge/Mallocs":       func() cs.Gauge { return cs.Gauge(ms.Mallocs) },
-		"gauge/NextGC":        func() cs.Gauge { return cs.Gauge(ms.NextGC) },
-		"gauge/NumForcedGC":   func() cs.Gauge { return cs.Gauge(ms.NumForcedGC) },
-		"gauge/NumGC":         func() cs.Gauge { return cs.Gauge(ms.NumGC) },
-		"gauge/OtherSys":      func() cs.Gauge { return cs.Gauge(ms.OtherSys) },
-		"gauge/PauseTotalNs":  func() cs.Gauge { return cs.Gauge(ms.PauseTotalNs) },
-		"gauge/StackInuse":    func() cs.Gauge { return cs.Gauge(ms.StackInuse) },
-		"gauge/StackSys":      func() cs.Gauge { return cs.Gauge(ms.StackSys) },
-		"gauge/Sys":           func() cs.Gauge { return cs.Gauge(ms.Sys) },
-		"gauge/TotalAlloc":    func() cs.Gauge { return cs.Gauge(ms.TotalAlloc) },
+		"Alloc":         func() cs.Gauge { return cs.Gauge(ms.Alloc) },
+		"BuckHashSys":   func() cs.Gauge { return cs.Gauge(ms.BuckHashSys) },
+		"Frees":         func() cs.Gauge { return cs.Gauge(ms.Frees) },
+		"GCCPUFraction": func() cs.Gauge { return cs.Gauge(ms.GCCPUFraction) },
+		"GCSys":         func() cs.Gauge { return cs.Gauge(ms.GCSys) },
+		"HeapAlloc":     func() cs.Gauge { return cs.Gauge(ms.HeapAlloc) },
+		"HeapIdle":      func() cs.Gauge { return cs.Gauge(ms.HeapIdle) },
+		"HeapInuse":     func() cs.Gauge { return cs.Gauge(ms.HeapInuse) },
+		"HeapObjects":   func() cs.Gauge { return cs.Gauge(ms.HeapObjects) },
+		"HeapReleased":  func() cs.Gauge { return cs.Gauge(ms.HeapReleased) },
+		"HeapSys":       func() cs.Gauge { return cs.Gauge(ms.HeapSys) },
+		"LastGC":        func() cs.Gauge { return cs.Gauge(ms.LastGC) },
+		"Lookups":       func() cs.Gauge { return cs.Gauge(ms.Lookups) },
+		"MCacheInuse":   func() cs.Gauge { return cs.Gauge(ms.MCacheInuse) },
+		"MCacheSys":     func() cs.Gauge { return cs.Gauge(ms.MCacheSys) },
+		"MSpanInuse":    func() cs.Gauge { return cs.Gauge(ms.MSpanInuse) },
+		"MSpanSys":      func() cs.Gauge { return cs.Gauge(ms.MSpanSys) },
+		"Mallocs":       func() cs.Gauge { return cs.Gauge(ms.Mallocs) },
+		"NextGC":        func() cs.Gauge { return cs.Gauge(ms.NextGC) },
+		"NumForcedGC":   func() cs.Gauge { return cs.Gauge(ms.NumForcedGC) },
+		"NumGC":         func() cs.Gauge { return cs.Gauge(ms.NumGC) },
+		"OtherSys":      func() cs.Gauge { return cs.Gauge(ms.OtherSys) },
+		"PauseTotalNs":  func() cs.Gauge { return cs.Gauge(ms.PauseTotalNs) },
+		"StackInuse":    func() cs.Gauge { return cs.Gauge(ms.StackInuse) },
+		"StackSys":      func() cs.Gauge { return cs.Gauge(ms.StackSys) },
+		"Sys":           func() cs.Gauge { return cs.Gauge(ms.Sys) },
+		"TotalAlloc":    func() cs.Gauge { return cs.Gauge(ms.TotalAlloc) },
+		"RandomValue":   func() cs.Gauge { return cs.Gauge(randomValue) },
 	}
 )
 
 func Update() {
 	PollCount++
-	RandomValue = rand.Float64()
+	randomValue = rand.Float64()
 	runtime.ReadMemStats(ms)
 }

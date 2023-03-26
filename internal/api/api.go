@@ -11,7 +11,8 @@ var (
 	client  = &http.Client{}
 	baseURL = "http://127.0.0.1:8080"
 	headers = http.Header{
-		"Content-Type": {"text/plain"},
+		"Content-Type": {"application/json"},
+		// "Content-Type": {"text/plain"},
 	}
 )
 
@@ -43,5 +44,5 @@ func Fetch(method, endpoint string, body io.Reader) {
 	}
 	response.Body.Close()
 
-	fmt.Println(string(resBody))
+	fmt.Println("response:", string(resBody))
 }
