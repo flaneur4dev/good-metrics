@@ -78,7 +78,7 @@ func HandleUpdateJSON(rep Updater) http.HandlerFunc {
 
 		var value string
 		if res.Value != nil && res.Delta == nil {
-			value = fmt.Sprintf("%.3f", *res.Value)
+			value = fmt.Sprintf("%f", *res.Value)
 		}
 		if res.Delta != nil && res.Value == nil {
 			value = fmt.Sprintf("%d", *res.Delta)

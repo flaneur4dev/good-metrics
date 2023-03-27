@@ -26,7 +26,7 @@ func (ms *MemStorage) AllMetrics() ([]string, []string) {
 
 	i := 0
 	for k, v := range ms.gauge {
-		gm[i] = fmt.Sprintf("%s: %.3f", k, v)
+		gm[i] = fmt.Sprintf("%s: %f", k, v)
 		i++
 	}
 
@@ -46,7 +46,7 @@ func (ms *MemStorage) OneMetric(t, n string) (string, error) {
 		if !ok {
 			return "", e.ErrNoMetric
 		}
-		return fmt.Sprintf("%.3f", v), nil
+		return fmt.Sprintf("%f", v), nil
 	case "counter":
 		v, ok := ms.counter[n]
 		if !ok {
