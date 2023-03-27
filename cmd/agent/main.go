@@ -34,7 +34,7 @@ func main() {
 					continue
 				}
 
-				api.Fetch(http.MethodPost, "update", bytes.NewReader(b))
+				api.Fetch(http.MethodPost, "update/", bytes.NewReader(b))
 			}
 
 			metrics.CMetrics.AddDelta("PollCount", metrics.PollCount)
@@ -45,7 +45,7 @@ func main() {
 				continue
 			}
 
-			api.Fetch(http.MethodPost, "update", bytes.NewReader(b))
+			api.Fetch(http.MethodPost, "update/", bytes.NewReader(b))
 		}
 	}
 }
