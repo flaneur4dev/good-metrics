@@ -102,6 +102,7 @@ func HandleUpdateJSON(rep Updater) http.HandlerFunc {
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(b)
 	}
@@ -160,6 +161,7 @@ func HandleMetricJSON(rep Metric) http.HandlerFunc {
 			return
 		}
 
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(b)
 	}
