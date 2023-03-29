@@ -1,8 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -12,7 +15,14 @@ import (
 )
 
 func main() {
-	addr, _ := utils.EnvVar("ADDRESS", ":8080").(string)
+	addr, _ := utils.EnvVar("ADDRESS", "localhost:8080").(string)
+	addrSlice := strings.Split(addr, ":")
+	if len(addrSlice) != 2 {
+		fmt.Println("Incorrect parameter!")
+		os.Exit(1)
+	}
+
+	port := addrSlice[1]
 	ms := storage.New()
 	r := chi.NewRouter()
 
@@ -23,7 +33,7 @@ func main() {
 	r.Post("/value/", handlers.HandleMetricJSON(ms))
 	r.Post("/update/", handlers.HandleUpdateJSON(ms))
 
-	err := http.ListenAndServe(addr, r)
+	err := http.ListenAndServe(":"+port, r)
 	if err != nil {
 		log.Fatal(err)
 	}

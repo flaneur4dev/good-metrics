@@ -10,9 +10,10 @@ import (
 )
 
 var (
-	client     = &http.Client{}
-	baseURL, _ = utils.EnvVar("ADDRESS", "http://127.0.0.1:8080").(string)
-	headers    = http.Header{
+	client  = &http.Client{}
+	addr, _ = utils.EnvVar("ADDRESS", "localhost:8080").(string)
+	baseURL = "http://" + addr
+	headers = http.Header{
 		"Content-Type": {"application/json"},
 		// "Content-Type": {"text/plain"},
 	}

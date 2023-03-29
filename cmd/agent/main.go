@@ -21,13 +21,13 @@ var (
 )
 
 func main() {
-	pollInterval, err := strconv.Atoi(strings.TrimRight(rawPollInterval, "seconds"))
+	pollInterval, err := strconv.Atoi(strings.TrimRight(rawPollInterval, "sec"))
 	if err != nil {
 		fmt.Println("Incorrect parameter!")
 		os.Exit(1)
 	}
 
-	reportInterval, err := strconv.Atoi(strings.TrimRight(rawReportInterval, "seconds"))
+	reportInterval, err := strconv.Atoi(strings.TrimRight(rawReportInterval, "sec"))
 	if err != nil {
 		fmt.Println("Incorrect parameter!")
 		os.Exit(1)
