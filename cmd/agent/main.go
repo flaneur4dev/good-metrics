@@ -5,6 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/flaneur4dev/good-metrics/internal/api"
@@ -13,11 +16,23 @@ import (
 )
 
 var (
-	pollInterval, _   = utils.EnvVar("POLL_INTERVAL", 2).(int)
-	reportInterval, _ = utils.EnvVar("REPORT_INTERVAL", 10).(int)
+	rawPollInterval, _   = utils.EnvVar("POLL_INTERVAL", "2sec").(string)
+	rawReportInterval, _ = utils.EnvVar("REPORT_INTERVAL", "10sec").(string)
 )
 
 func main() {
+	pollInterval, err := strconv.Atoi(strings.TrimRight(rawPollInterval, "seconds"))
+	if err != nil {
+		fmt.Println("Incorrect parameter!")
+		os.Exit(1)
+	}
+
+	reportInterval, err := strconv.Atoi(strings.TrimRight(rawReportInterval, "seconds"))
+	if err != nil {
+		fmt.Println("Incorrect parameter!")
+		os.Exit(1)
+	}
+
 	start := time.Now()
 	ticker := time.NewTicker(time.Duration(pollInterval) * time.Second)
 	defer ticker.Stop()
