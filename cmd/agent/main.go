@@ -8,17 +8,18 @@ import (
 	"time"
 
 	"github.com/flaneur4dev/good-metrics/internal/api"
+	"github.com/flaneur4dev/good-metrics/internal/lib/utils"
 	"github.com/flaneur4dev/good-metrics/internal/metrics"
 )
 
-const (
-	pollInterval   = 2 * time.Second
-	reportInterval = 10 //time.Second
+var (
+	pollInterval, _   = utils.EnvVar("POLL_INTERVAL", 2).(int)
+	reportInterval, _ = utils.EnvVar("REPORT_INTERVAL", 10).(int)
 )
 
 func main() {
 	start := time.Now()
-	ticker := time.NewTicker(pollInterval)
+	ticker := time.NewTicker(time.Duration(pollInterval) * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
@@ -52,7 +53,7 @@ func main() {
 
 // func main() {
 // 	start := time.Now()
-// 	ticker := time.NewTicker(pollInterval)
+// 	ticker := time.NewTicker(time.Duration(pollInterval) * time.Second)
 // 	defer ticker.Stop()
 
 // 	for t := range ticker.C {

@@ -7,10 +7,12 @@ import (
 	"github.com/go-chi/chi/v5"
 
 	"github.com/flaneur4dev/good-metrics/internal/handlers"
+	"github.com/flaneur4dev/good-metrics/internal/lib/utils"
 	"github.com/flaneur4dev/good-metrics/internal/storage"
 )
 
 func main() {
+	addr, _ := utils.EnvVar("ADDRESS", ":8080").(string)
 	ms := storage.New()
 	r := chi.NewRouter()
 
@@ -21,7 +23,7 @@ func main() {
 	r.Post("/value/", handlers.HandleMetricJSON(ms))
 	r.Post("/update/", handlers.HandleUpdateJSON(ms))
 
-	err := http.ListenAndServe(":8080", r)
+	err := http.ListenAndServe(addr, r)
 	if err != nil {
 		log.Fatal(err)
 	}

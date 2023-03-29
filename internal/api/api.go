@@ -5,12 +5,14 @@ import (
 	"io"
 	"net/http"
 	// "net/http/httputil"
+
+	"github.com/flaneur4dev/good-metrics/internal/lib/utils"
 )
 
 var (
-	client  = &http.Client{}
-	baseURL = "http://127.0.0.1:8080"
-	headers = http.Header{
+	client     = &http.Client{}
+	baseURL, _ = utils.EnvVar("ADDRESS", "http://127.0.0.1:8080").(string)
+	headers    = http.Header{
 		"Content-Type": {"application/json"},
 		// "Content-Type": {"text/plain"},
 	}
