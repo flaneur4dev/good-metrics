@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strconv"
 )
@@ -14,13 +15,11 @@ func EnvVar(k string, d any) (res any) {
 		case "int":
 			i, err := strconv.Atoi(val)
 			if err != nil {
-				fmt.Println("Incorrect parameter!")
-				os.Exit(1)
+				log.Fatal("Incorrect parameter!")
 			}
 			res = i
 		default:
-			fmt.Println("Incorrect parameter!")
-			os.Exit(1)
+			log.Fatal("Incorrect parameter!")
 		}
 	} else {
 		res = d

@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -23,14 +23,12 @@ var (
 func main() {
 	pollInterval, err := strconv.Atoi(strings.TrimRight(rawPollInterval, "sec"))
 	if err != nil {
-		fmt.Println("Incorrect parameter!")
-		os.Exit(1)
+		log.Fatal("Incorrect parameter!")
 	}
 
 	reportInterval, err := strconv.Atoi(strings.TrimRight(rawReportInterval, "sec"))
 	if err != nil {
-		fmt.Println("Incorrect parameter!")
-		os.Exit(1)
+		log.Fatal("Incorrect parameter!")
 	}
 
 	start := time.Now()
