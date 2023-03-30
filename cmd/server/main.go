@@ -6,6 +6,8 @@ import (
 
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -19,8 +21,13 @@ func main() {
 
 	addr, _ := utils.EnvVar("ADDRESS", "localhost:8080").(string)
 	storeFile, _ := utils.EnvVar("STORE_FILE", "/tmp/devops-metrics-db.json").(string)
-	storeInterval, _ := utils.EnvVar("STORE_INTERVAL", 300).(int)
+	rawStoreInterval, _ := utils.EnvVar("STORE_INTERVAL", "300sec").(string)
 	restore, _ := utils.EnvVar("RESTORE", true).(bool)
+
+	storeInterval, err := strconv.Atoi(strings.TrimRight(rawStoreInterval, "sec"))
+	if err != nil {
+		log.Fatal("Incorrect parameter!")
+	}
 
 	r := chi.NewRouter()
 	ms := storage.New(storeFile, storeInterval, restore)
@@ -33,7 +40,7 @@ func main() {
 	r.Post("/value/", handlers.HandleMetricJSON(ms))
 	r.Post("/update/", handlers.HandleUpdateJSON(ms))
 
-	err := http.ListenAndServe(addr, r)
+	err = http.ListenAndServe(addr, r)
 	if err != nil {
 		log.Fatal(err)
 	}
