@@ -7,7 +7,7 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	ms := MemStorage{}
+	ms := New("", 0, false)
 	delta := cs.Counter(42)
 	value := cs.Gauge(42.420)
 

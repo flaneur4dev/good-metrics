@@ -18,6 +18,12 @@ func EnvVar(k string, d any) (res any) {
 				log.Fatal("Incorrect parameter!")
 			}
 			res = i
+		case "bool":
+			b, err := strconv.ParseBool(val)
+			if err != nil {
+				log.Fatal("Incorrect parameter!")
+			}
+			res = b
 		default:
 			log.Fatal("Incorrect parameter!")
 		}
