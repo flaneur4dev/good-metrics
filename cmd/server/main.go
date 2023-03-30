@@ -4,6 +4,9 @@ import (
 	"log"
 	"net/http"
 
+	"fmt"
+	"os"
+
 	"github.com/go-chi/chi/v5"
 
 	"github.com/flaneur4dev/good-metrics/internal/handlers"
@@ -12,6 +15,8 @@ import (
 )
 
 func main() {
+	fmt.Println(os.Environ())
+
 	addr, _ := utils.EnvVar("ADDRESS", "localhost:8080").(string)
 	storeFile, _ := utils.EnvVar("STORE_FILE", "/tmp/devops-metrics-db.json").(string)
 	storeInterval, _ := utils.EnvVar("STORE_INTERVAL", 300).(int)
