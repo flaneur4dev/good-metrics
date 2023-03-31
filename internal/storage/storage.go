@@ -69,8 +69,6 @@ func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
 		if m, ok := ms.metrics[n]; ok {
 			nv := *m.Delta + *nm.Delta
 			nm.Delta = &nv
-			// ms.metrics[n] = m
-			// return m, nil
 		}
 	}
 
@@ -101,12 +99,6 @@ func (ms *MemStorage) toFile() {
 		return
 	}
 
-	// fd, err := os.OpenFile(ms.filePath, os.O_WRONLY|os.O_CREATE, 0644)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
 	data, err := json.Marshal(ms.metrics)
 	if err != nil {
 		fmt.Println(err)
@@ -118,28 +110,12 @@ func (ms *MemStorage) toFile() {
 		fmt.Println(err)
 		return
 	}
-
-	// _, err = fd.Write(b)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
-
-	// if err := fd.Close(); err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
 }
 
 func (ms *MemStorage) fromFile() {
 	if ms.filePath == "" {
 		return
 	}
-
-	// fd, err := os.Open(ms.filePath)
-	// if err != nil {
-	// 	fmt.Println(err)
-	// }
 
 	data, err := os.ReadFile(ms.filePath)
 	if err != nil {
@@ -155,9 +131,4 @@ func (ms *MemStorage) fromFile() {
 	}
 
 	ms.metrics = res
-
-	// if err := fd.Close(); err != nil {
-	// 	fmt.Println(err)
-	// 	return
-	// }
 }

@@ -1,11 +1,9 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
-
-	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -16,13 +14,19 @@ import (
 	"github.com/flaneur4dev/good-metrics/internal/storage"
 )
 
-func main() {
-	fmt.Println(os.Environ())
+var (
+	re     bool
+	ad, sf string
+	iv     = "0sec"
+)
 
-	addr, _ := utils.EnvVar("ADDRESS", "localhost:8080").(string)
-	storeFile, _ := utils.EnvVar("STORE_FILE", "/tmp/devops-metrics-db.json").(string)
-	rawStoreInterval, _ := utils.EnvVar("STORE_INTERVAL", "300sec").(string)
-	restore, _ := utils.EnvVar("RESTORE", true).(bool)
+func main() {
+	flag.Parse()
+
+	addr, _ := utils.EnvVar("ADDRESS", ad).(string)
+	storeFile, _ := utils.EnvVar("STORE_FILE", sf).(string)
+	rawStoreInterval, _ := utils.EnvVar("STORE_INTERVAL", iv).(string)
+	restore, _ := utils.EnvVar("RESTORE", re).(bool)
 
 	storeInterval, err := strconv.Atoi(strings.TrimRight(rawStoreInterval, "sec"))
 	if err != nil {
@@ -44,4 +48,15 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
+
+func init() {
+	flag.StringVar(&ad, "a", "localhost:8080", "server address")
+	flag.StringVar(&sf, "f", "/tmp/devops-metrics-db.json", "store file")
+	flag.BoolVar(&re, "r", true, "restore on start")
+
+	flag.Func("i", "store interval", func(fl string) error {
+		iv = fl + "sec"
+		return nil
+	})
 }

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,11 +17,19 @@ import (
 )
 
 var (
-	rawPollInterval, _   = utils.EnvVar("POLL_INTERVAL", "2sec").(string)
-	rawReportInterval, _ = utils.EnvVar("REPORT_INTERVAL", "10sec").(string)
+	ad  string
+	piv = "2sec"
+	riv = "10sec"
 )
 
 func main() {
+	flag.Parse()
+
+	rawReportInterval, _ := utils.EnvVar("REPORT_INTERVAL", riv).(string)
+	rawPollInterval, _ := utils.EnvVar("POLL_INTERVAL", piv).(string)
+	addr, _ := utils.EnvVar("ADDRESS", ad).(string)
+	baseURL := "http://" + addr
+
 	pollInterval, err := strconv.Atoi(strings.TrimRight(rawPollInterval, "sec"))
 	if err != nil {
 		log.Fatal("Incorrect parameter!")
@@ -48,7 +57,7 @@ func main() {
 					continue
 				}
 
-				api.Fetch(http.MethodPost, "update/", bytes.NewReader(b))
+				api.Fetch(http.MethodPost, baseURL+"/update/", bytes.NewReader(b))
 			}
 
 			metrics.CMetrics.AddDelta("PollCount", metrics.PollCount)
@@ -59,9 +68,23 @@ func main() {
 				continue
 			}
 
-			api.Fetch(http.MethodPost, "update/", bytes.NewReader(b))
+			api.Fetch(http.MethodPost, baseURL+"/update/", bytes.NewReader(b))
 		}
 	}
+}
+
+func init() {
+	flag.StringVar(&ad, "a", "localhost:8080", "server address")
+
+	flag.Func("p", "poll interval", func(fl string) error {
+		piv = fl + "sec"
+		return nil
+	})
+
+	flag.Func("r", "report interval", func(fl string) error {
+		riv = fl + "sec"
+		return nil
+	})
 }
 
 // func main() {
