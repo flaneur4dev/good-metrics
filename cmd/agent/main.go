@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/flaneur4dev/good-metrics/internal/api"
+	"github.com/flaneur4dev/good-metrics/internal/client"
 	"github.com/flaneur4dev/good-metrics/internal/lib/utils"
 	"github.com/flaneur4dev/good-metrics/internal/metrics"
 )
@@ -25,10 +25,9 @@ var (
 func main() {
 	flag.Parse()
 
-	rawReportInterval, _ := utils.EnvVar("REPORT_INTERVAL", riv).(string)
-	rawPollInterval, _ := utils.EnvVar("POLL_INTERVAL", piv).(string)
 	addr, _ := utils.EnvVar("ADDRESS", ad).(string)
-	baseURL := "http://" + addr
+	rawPollInterval, _ := utils.EnvVar("POLL_INTERVAL", piv).(string)
+	rawReportInterval, _ := utils.EnvVar("REPORT_INTERVAL", riv).(string)
 
 	pollInterval, err := strconv.Atoi(strings.TrimRight(rawPollInterval, "sec"))
 	if err != nil {
@@ -39,6 +38,8 @@ func main() {
 	if err != nil {
 		log.Fatal("Incorrect parameter!")
 	}
+
+	mc := client.New(addr, false)
 
 	start := time.Now()
 	ticker := time.NewTicker(time.Duration(pollInterval) * time.Second)
@@ -57,7 +58,7 @@ func main() {
 					continue
 				}
 
-				api.Fetch(http.MethodPost, baseURL+"/update/", bytes.NewReader(b))
+				mc.Fetch(http.MethodPost, "/update/", bytes.NewReader(b))
 			}
 
 			metrics.CMetrics.AddDelta("PollCount", metrics.PollCount)
@@ -68,7 +69,7 @@ func main() {
 				continue
 			}
 
-			api.Fetch(http.MethodPost, baseURL+"/update/", bytes.NewReader(b))
+			mc.Fetch(http.MethodPost, "/update/", bytes.NewReader(b))
 		}
 	}
 }

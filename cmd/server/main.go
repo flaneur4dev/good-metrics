@@ -17,7 +17,7 @@ import (
 var (
 	re     bool
 	ad, sf string
-	iv     = "0sec"
+	iv     = "300sec"
 )
 
 func main() {
