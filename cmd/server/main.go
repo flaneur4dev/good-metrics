@@ -18,7 +18,7 @@ import (
 var (
 	re     bool
 	ad, sf string
-	siv    = "0sec"
+	siv    = "300sec"
 )
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 
 	storeInterval, err := strconv.Atoi(strings.TrimRight(rawStoreInterval, "sec"))
 	if err != nil {
-		log.Fatal("Incorrect parameter!")
+		log.Fatal("Incorrect parameter:", rawStoreInterval, storeInterval)
 	}
 
 	ms := storage.New(storeFile, storeInterval, restore)
