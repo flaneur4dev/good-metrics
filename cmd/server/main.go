@@ -11,13 +11,14 @@ import (
 
 	"github.com/flaneur4dev/good-metrics/internal/handlers"
 	"github.com/flaneur4dev/good-metrics/internal/lib/utils"
+	"github.com/flaneur4dev/good-metrics/internal/middlewares/compression"
 	"github.com/flaneur4dev/good-metrics/internal/storage"
 )
 
 var (
 	re     bool
 	ad, sf string
-	iv     = "300sec"
+	siv    = "0sec"
 )
 
 func main() {
@@ -25,7 +26,7 @@ func main() {
 
 	addr, _ := utils.EnvVar("ADDRESS", ad).(string)
 	storeFile, _ := utils.EnvVar("STORE_FILE", sf).(string)
-	rawStoreInterval, _ := utils.EnvVar("STORE_INTERVAL", iv).(string)
+	rawStoreInterval, _ := utils.EnvVar("STORE_INTERVAL", siv).(string)
 	restore, _ := utils.EnvVar("RESTORE", re).(bool)
 
 	storeInterval, err := strconv.Atoi(strings.TrimRight(rawStoreInterval, "sec"))
@@ -33,9 +34,11 @@ func main() {
 		log.Fatal("Incorrect parameter!")
 	}
 
-	r := chi.NewRouter()
 	ms := storage.New(storeFile, storeInterval, restore)
 	defer ms.Close()
+
+	r := chi.NewRouter()
+	r.Use(compression.HandleGzip)
 
 	r.Get("/", handlers.HandleMetrics(ms))
 	r.Get("/value/{mType}/{mName}", handlers.HandleMetric(ms))
@@ -56,7 +59,7 @@ func init() {
 	flag.BoolVar(&re, "r", true, "restore on start")
 
 	flag.Func("i", "store interval", func(fl string) error {
-		iv = fl + "sec"
+		siv = fl + "sec"
 		return nil
 	})
 }

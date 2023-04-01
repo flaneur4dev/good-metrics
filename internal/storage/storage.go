@@ -18,11 +18,11 @@ type MemStorage struct {
 	mTimer        *time.Timer
 }
 
-func New(fp string, iv int, re bool) *MemStorage {
+func New(fp string, siv int, re bool) *MemStorage {
 	ms := &MemStorage{
 		metrics:       map[string]cs.Metrics{},
 		filePath:      fp,
-		storeInterval: time.Duration(iv),
+		storeInterval: time.Duration(siv),
 		isRestored:    re,
 	}
 
