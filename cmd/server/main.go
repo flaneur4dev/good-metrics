@@ -2,8 +2,10 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -29,9 +31,11 @@ func main() {
 	rawStoreInterval, _ := utils.EnvVar("STORE_INTERVAL", siv).(string)
 	restore, _ := utils.EnvVar("RESTORE", re).(bool)
 
+	fmt.Println(os.Environ())
+
 	storeInterval, err := strconv.Atoi(strings.TrimRight(rawStoreInterval, "sec"))
 	if err != nil {
-		log.Fatal("Incorrect parameter:", rawStoreInterval, storeInterval)
+		log.Fatal("Incorrect parameter:", rawStoreInterval)
 	}
 
 	ms := storage.New(storeFile, storeInterval, restore)
