@@ -20,7 +20,7 @@ import (
 var (
 	re     bool
 	ad, sf string
-	siv    = "300sec"
+	siv    = "300s"
 )
 
 func main() {
@@ -33,9 +33,9 @@ func main() {
 
 	fmt.Println(os.Environ())
 
-	storeInterval, err := strconv.Atoi(strings.TrimRight(rawStoreInterval, "sec"))
+	storeInterval, err := strconv.Atoi(strings.TrimRight(rawStoreInterval, "ms"))
 	if err != nil {
-		log.Fatal("Incorrect parameter:", rawStoreInterval)
+		log.Fatal("Incorrect parameter: ", rawStoreInterval)
 	}
 
 	ms := storage.New(storeFile, storeInterval, restore)
@@ -63,7 +63,8 @@ func init() {
 	flag.BoolVar(&re, "r", true, "restore on start")
 
 	flag.Func("i", "store interval", func(fl string) error {
-		siv = fl + "sec"
+		fmt.Println("interval flag:", fl)
+		siv = fl + "s"
 		return nil
 	})
 }
