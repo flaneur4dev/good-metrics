@@ -18,8 +18,8 @@ import (
 
 var (
 	ad  string
-	piv = "2sec"
-	riv = "10sec"
+	piv = "2s"
+	riv = "10s"
 )
 
 func main() {
@@ -29,12 +29,12 @@ func main() {
 	rawPollInterval, _ := utils.EnvVar("POLL_INTERVAL", piv).(string)
 	rawReportInterval, _ := utils.EnvVar("REPORT_INTERVAL", riv).(string)
 
-	pollInterval, err := strconv.Atoi(strings.TrimRight(rawPollInterval, "sec"))
+	pollInterval, err := strconv.Atoi(strings.TrimRight(rawPollInterval, "ms"))
 	if err != nil {
 		log.Fatal("Incorrect parameter!")
 	}
 
-	reportInterval, err := strconv.Atoi(strings.TrimRight(rawReportInterval, "sec"))
+	reportInterval, err := strconv.Atoi(strings.TrimRight(rawReportInterval, "ms"))
 	if err != nil {
 		log.Fatal("Incorrect parameter!")
 	}
@@ -78,12 +78,12 @@ func init() {
 	flag.StringVar(&ad, "a", "localhost:8080", "server address")
 
 	flag.Func("p", "poll interval", func(fl string) error {
-		piv = fl + "sec"
+		piv = fl + "s"
 		return nil
 	})
 
 	flag.Func("r", "report interval", func(fl string) error {
-		riv = fl + "sec"
+		riv = fl + "s"
 		return nil
 	})
 }

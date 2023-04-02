@@ -192,6 +192,8 @@ func HandleMetrics(rep Metrics) http.HandlerFunc {
 			CMetics: cm,
 		}
 
+		w.Header().Set("Content-Type", "text/html")
+
 		err = t.Execute(w, data)
 		if err != nil {
 			http.Error(w, "Somthing went wrong", http.StatusInternalServerError)

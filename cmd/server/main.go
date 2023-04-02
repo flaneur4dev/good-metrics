@@ -2,10 +2,8 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 
@@ -30,8 +28,6 @@ func main() {
 	storeFile, _ := utils.EnvVar("STORE_FILE", sf).(string)
 	rawStoreInterval, _ := utils.EnvVar("STORE_INTERVAL", siv).(string)
 	restore, _ := utils.EnvVar("RESTORE", re).(bool)
-
-	fmt.Println(os.Environ())
 
 	storeInterval, err := strconv.Atoi(strings.TrimRight(rawStoreInterval, "ms"))
 	if err != nil {
@@ -63,7 +59,6 @@ func init() {
 	flag.BoolVar(&re, "r", true, "restore on start")
 
 	flag.Func("i", "store interval", func(fl string) error {
-		fmt.Println("interval flag:", fl)
 		siv = fl + "s"
 		return nil
 	})
