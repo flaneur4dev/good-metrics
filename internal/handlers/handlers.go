@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"io"
 	"net/http"
+	"strings"
 	"strconv"
 
 	"github.com/go-chi/chi/v5"
@@ -126,7 +127,7 @@ func HandleMetric(rep Metric) http.HandlerFunc {
 		var rv string
 		switch mType {
 		case utils.GaugeName:
-			rv = fmt.Sprintf("%.3f", *v.Value)
+			rv = strings.TrimRight(fmt.Sprintf("%.3f", *v.Value), "0")
 		case utils.CounterName:
 			rv = fmt.Sprintf("%d", *v.Delta)
 		}
