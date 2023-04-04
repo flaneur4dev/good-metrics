@@ -13,6 +13,7 @@ import (
 
 	cs "github.com/flaneur4dev/good-metrics/internal/contracts"
 	e "github.com/flaneur4dev/good-metrics/internal/lib/mistakes"
+	"github.com/flaneur4dev/good-metrics/internal/lib/utils"
 )
 
 type (
@@ -36,7 +37,7 @@ func HandleUpdate(rep Updater) http.HandlerFunc {
 		res := cs.Metrics{ID: mName, MType: mType}
 
 		switch mType {
-		case "gauge":
+		case utils.GaugeName:
 			f, err := strconv.ParseFloat(mValue, 64)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
@@ -45,7 +46,7 @@ func HandleUpdate(rep Updater) http.HandlerFunc {
 
 			value := cs.Gauge(f)
 			res.Value = &value
-		case "counter":
+		case utils.CounterName:
 			d, err := strconv.ParseInt(mValue, 10, 64)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
@@ -124,9 +125,9 @@ func HandleMetric(rep Metric) http.HandlerFunc {
 
 		var rv string
 		switch mType {
-		case "gauge":
+		case utils.GaugeName:
 			rv = fmt.Sprintf("%.3f", *v.Value)
-		case "counter":
+		case utils.CounterName:
 			rv = fmt.Sprintf("%d", *v.Delta)
 		}
 

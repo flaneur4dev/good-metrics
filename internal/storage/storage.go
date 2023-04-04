@@ -8,6 +8,7 @@ import (
 
 	cs "github.com/flaneur4dev/good-metrics/internal/contracts"
 	e "github.com/flaneur4dev/good-metrics/internal/lib/mistakes"
+	"github.com/flaneur4dev/good-metrics/internal/lib/utils"
 )
 
 type MemStorage struct {
@@ -18,7 +19,7 @@ type MemStorage struct {
 	mTimer        *time.Timer
 }
 
-func New(fp string, siv int, re bool) *MemStorage {
+func New(fp string, siv float64, re bool) *MemStorage {
 	ms := &MemStorage{
 		metrics:       map[string]cs.Metrics{},
 		filePath:      fp,
@@ -39,7 +40,7 @@ func New(fp string, siv int, re bool) *MemStorage {
 
 func (ms *MemStorage) AllMetrics() (gm, cm []string) {
 	for k, v := range ms.metrics {
-		if v.MType == "gauge" {
+		if v.MType == utils.GaugeName {
 			gm = append(gm, fmt.Sprintf("%s: %f", k, *v.Value))
 		} else {
 			cm = append(cm, fmt.Sprintf("%s: %d", k, *v.Delta))
@@ -61,11 +62,11 @@ func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
 		return cs.Metrics{}, e.ErrInvalidData
 	}
 
-	if !(nm.MType == "gauge" && nm.Value != nil) && !(nm.MType == "counter" && nm.Delta != nil) {
+	if !(nm.MType == utils.GaugeName && nm.Value != nil) && !(nm.MType == utils.CounterName && nm.Delta != nil) {
 		return cs.Metrics{}, e.ErrUnkownMetricType
 	}
 
-	if nm.MType == "counter" {
+	if nm.MType == utils.CounterName {
 		if m, ok := ms.metrics[n]; ok {
 			nv := *m.Delta + *nm.Delta
 			nm.Delta = &nv

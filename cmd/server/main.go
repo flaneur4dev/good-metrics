@@ -4,8 +4,7 @@ import (
 	"flag"
 	"log"
 	"net/http"
-	"strconv"
-	"strings"
+	"time"
 
 	"github.com/go-chi/chi/v5"
 
@@ -16,25 +15,24 @@ import (
 )
 
 var (
-	re     bool
-	ad, sf string
-	siv    = "300s"
+	address, storeFile, rawStoreInterval string
+	restore                              bool
 )
 
 func main() {
 	flag.Parse()
 
-	addr, _ := utils.EnvVar("ADDRESS", ad).(string)
-	storeFile, _ := utils.EnvVar("STORE_FILE", sf).(string)
-	rawStoreInterval, _ := utils.EnvVar("STORE_INTERVAL", siv).(string)
-	restore, _ := utils.EnvVar("RESTORE", re).(bool)
+	address, _ := utils.EnvVar("ADDRESS", address).(string)
+	storeFile, _ := utils.EnvVar("STORE_FILE", storeFile).(string)
+	rawStoreInterval, _ := utils.EnvVar("STORE_INTERVAL", rawStoreInterval).(string)
+	restore, _ := utils.EnvVar("RESTORE", restore).(bool)
 
-	storeInterval, err := strconv.Atoi(strings.TrimRight(rawStoreInterval, "ms"))
+	storeInterval, err := time.ParseDuration(rawStoreInterval)
 	if err != nil {
 		log.Fatal("Incorrect parameter: ", rawStoreInterval)
 	}
 
-	ms := storage.New(storeFile, storeInterval, restore)
+	ms := storage.New(storeFile, storeInterval.Seconds(), restore)
 	defer ms.Close()
 
 	r := chi.NewRouter()
@@ -47,19 +45,15 @@ func main() {
 	r.Post("/value/", handlers.HandleMetricJSON(ms))
 	r.Post("/update/", handlers.HandleUpdateJSON(ms))
 
-	err = http.ListenAndServe(addr, r)
+	err = http.ListenAndServe(address, r)
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
 func init() {
-	flag.StringVar(&ad, "a", "localhost:8080", "server address")
-	flag.StringVar(&sf, "f", "/tmp/devops-metrics-db.json", "store file")
-	flag.BoolVar(&re, "r", true, "restore on start")
-
-	flag.Func("i", "store interval", func(fl string) error {
-		siv = fl + "s"
-		return nil
-	})
+	flag.StringVar(&address, "a", "localhost:8080", "server address")
+	flag.StringVar(&storeFile, "f", "/tmp/devops-metrics-db.json", "store file")
+	flag.StringVar(&rawStoreInterval, "i", "300s", "store interval")
+	flag.BoolVar(&restore, "r", true, "restore on start")
 }

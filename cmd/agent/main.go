@@ -7,8 +7,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/flaneur4dev/good-metrics/internal/client"
@@ -16,39 +14,35 @@ import (
 	"github.com/flaneur4dev/good-metrics/internal/metrics"
 )
 
-var (
-	ad  string
-	piv = "2s"
-	riv = "10s"
-)
+var address, rawPollInterval, rawReportInterval string
 
 func main() {
 	flag.Parse()
 
-	addr, _ := utils.EnvVar("ADDRESS", ad).(string)
-	rawPollInterval, _ := utils.EnvVar("POLL_INTERVAL", piv).(string)
-	rawReportInterval, _ := utils.EnvVar("REPORT_INTERVAL", riv).(string)
+	address, _ := utils.EnvVar("ADDRESS", address).(string)
+	rawPollInterval, _ := utils.EnvVar("POLL_INTERVAL", rawPollInterval).(string)
+	rawReportInterval, _ := utils.EnvVar("REPORT_INTERVAL", rawReportInterval).(string)
 
-	pollInterval, err := strconv.Atoi(strings.TrimRight(rawPollInterval, "ms"))
+	pollInterval, err := time.ParseDuration(rawPollInterval)
 	if err != nil {
-		log.Fatal("Incorrect parameter!")
+		log.Fatal("Incorrect parameter: ", rawPollInterval)
 	}
 
-	reportInterval, err := strconv.Atoi(strings.TrimRight(rawReportInterval, "ms"))
+	reportInterval, err := time.ParseDuration(rawReportInterval)
 	if err != nil {
-		log.Fatal("Incorrect parameter!")
+		log.Fatal("Incorrect parameter: ", rawReportInterval)
 	}
 
-	mc := client.New(addr, false)
+	mc := client.New(address, false)
 
 	start := time.Now()
-	ticker := time.NewTicker(time.Duration(pollInterval) * time.Second)
+	ticker := time.NewTicker(time.Duration(pollInterval.Seconds()) * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
 		metrics.Update()
 
-		if int(t.Sub(start).Seconds())%reportInterval == 0 {
+		if int(t.Sub(start).Seconds())%int(reportInterval.Seconds()) == 0 {
 			for k, v := range metrics.List {
 				metrics.CMetrics.AddValue(k, v())
 
@@ -75,33 +69,7 @@ func main() {
 }
 
 func init() {
-	flag.StringVar(&ad, "a", "localhost:8080", "server address")
-
-	flag.Func("p", "poll interval", func(fl string) error {
-		piv = fl + "s"
-		return nil
-	})
-
-	flag.Func("r", "report interval", func(fl string) error {
-		riv = fl + "s"
-		return nil
-	})
+	flag.StringVar(&address, "a", "localhost:8080", "server address")
+	flag.StringVar(&rawPollInterval, "p", "2s", "poll interval")
+	flag.StringVar(&rawReportInterval, "r", "10s", "report interval")
 }
-
-// func main() {
-// 	start := time.Now()
-// 	ticker := time.NewTicker(time.Duration(pollInterval) * time.Second)
-// 	defer ticker.Stop()
-
-// 	for t := range ticker.C {
-// 		metrics.Update()
-
-// 		if int(t.Sub(start).Seconds())%reportInterval == 0 {
-// 			for k, v := range metrics.List {
-// 				api.Fetch(http.MethodPost, fmt.Sprintf("update/gauge/%s/%.3f", k, v()), nil)
-// 			}
-
-// 			api.Fetch(http.MethodPost, fmt.Sprintf("update/counter/PollCount/%d", metrics.PollCount), nil)
-// 		}
-// 	}
-// }

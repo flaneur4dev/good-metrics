@@ -5,20 +5,21 @@ import (
 	"runtime"
 
 	cs "github.com/flaneur4dev/good-metrics/internal/contracts"
+	"github.com/flaneur4dev/good-metrics/internal/lib/utils"
 )
 
 type ClientMetrics cs.Metrics
 
 func (cm *ClientMetrics) AddValue(n string, v cs.Gauge) {
 	cm.ID = n
-	cm.MType = "gauge"
+	cm.MType = utils.GaugeName
 	cm.Delta = nil
 	cm.Value = &v
 }
 
 func (cm *ClientMetrics) AddDelta(n string, v cs.Counter) {
 	cm.ID = n
-	cm.MType = "counter"
+	cm.MType = utils.CounterName
 	cm.Delta = &v
 	cm.Value = nil
 }
