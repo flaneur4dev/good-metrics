@@ -22,10 +22,10 @@ var (
 func main() {
 	flag.Parse()
 
-	address, _ := utils.EnvVar("ADDRESS", address).(string)
-	storeFile, _ := utils.EnvVar("STORE_FILE", storeFile).(string)
-	rawStoreInterval, _ := utils.EnvVar("STORE_INTERVAL", rawStoreInterval).(string)
-	restore, _ := utils.EnvVar("RESTORE", restore).(bool)
+	address = utils.StringEnv("ADDRESS", address)
+	storeFile = utils.StringEnv("STORE_FILE", storeFile)
+	rawStoreInterval = utils.StringEnv("STORE_INTERVAL", rawStoreInterval)
+	restore = utils.BoolEnv("RESTORE", restore)
 
 	storeInterval, err := time.ParseDuration(rawStoreInterval)
 	if err != nil {

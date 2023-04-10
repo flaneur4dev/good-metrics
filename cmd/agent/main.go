@@ -19,9 +19,9 @@ var address, rawPollInterval, rawReportInterval string
 func main() {
 	flag.Parse()
 
-	address, _ := utils.EnvVar("ADDRESS", address).(string)
-	rawPollInterval, _ := utils.EnvVar("POLL_INTERVAL", rawPollInterval).(string)
-	rawReportInterval, _ := utils.EnvVar("REPORT_INTERVAL", rawReportInterval).(string)
+	address = utils.StringEnv("ADDRESS", address)
+	rawPollInterval = utils.StringEnv("POLL_INTERVAL", rawPollInterval)
+	rawReportInterval = utils.StringEnv("REPORT_INTERVAL", rawReportInterval)
 
 	pollInterval, err := time.ParseDuration(rawPollInterval)
 	if err != nil {

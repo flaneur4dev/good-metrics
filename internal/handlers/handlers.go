@@ -7,8 +7,8 @@ import (
 	"html/template"
 	"io"
 	"net/http"
-	"strings"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
