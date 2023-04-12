@@ -33,7 +33,7 @@ func main() {
 		log.Fatal("Incorrect parameter: ", rawStoreInterval)
 	}
 
-	ms := storage.New(storeFile, storeInterval.Seconds(), restore)
+	ms := storage.New(storeFile, key, storeInterval.Seconds(), restore)
 	defer ms.Close()
 
 	r := chi.NewRouter()
@@ -44,7 +44,7 @@ func main() {
 	r.Post("/update/{mType}/{mName}/{mValue}", handlers.HandleUpdate(ms))
 
 	r.Post("/value/", handlers.HandleMetricJSON(ms))
-	r.Post("/update/", handlers.HandleUpdateJSON(ms, key))
+	r.Post("/update/", handlers.HandleUpdateJSON(ms))
 
 	err = http.ListenAndServe(address, r)
 	if err != nil {
