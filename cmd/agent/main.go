@@ -1,34 +1,75 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
+	"flag"
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 
-	"github.com/flaneur4dev/good-metrics/internal/api"
+	"github.com/flaneur4dev/good-metrics/internal/client"
+	"github.com/flaneur4dev/good-metrics/internal/lib/utils"
 	"github.com/flaneur4dev/good-metrics/internal/metrics"
 )
 
-const (
-	pollInterval   = 2 * time.Second
-	reportInterval = 10 //time.Second
-)
+var address, rawPollInterval, rawReportInterval string
 
 func main() {
+	flag.Parse()
+
+	address = utils.StringEnv("ADDRESS", address)
+	rawPollInterval = utils.StringEnv("POLL_INTERVAL", rawPollInterval)
+	rawReportInterval = utils.StringEnv("REPORT_INTERVAL", rawReportInterval)
+
+	pollInterval, err := time.ParseDuration(rawPollInterval)
+	if err != nil {
+		log.Fatal("Incorrect parameter: ", rawPollInterval)
+	}
+
+	reportInterval, err := time.ParseDuration(rawReportInterval)
+	if err != nil {
+		log.Fatal("Incorrect parameter: ", rawReportInterval)
+	}
+
+	mc := client.New(address, false)
+
 	start := time.Now()
-	ticker := time.NewTicker(pollInterval)
+	ticker := time.NewTicker(time.Duration(pollInterval.Seconds()) * time.Second)
 	defer ticker.Stop()
 
 	for t := range ticker.C {
 		metrics.Update()
 
-		if int(t.Sub(start).Seconds())%reportInterval == 0 {
+		if int(t.Sub(start).Seconds())%int(reportInterval.Seconds()) == 0 {
 			for k, v := range metrics.List {
-				api.Fetch(http.MethodPost, fmt.Sprintf("update/%s/%.3f", k, v()), nil)
+				metrics.CMetrics.AddValue(k, v())
+
+				b, err := json.Marshal(metrics.CMetrics)
+				if err != nil {
+					fmt.Println(err)
+					continue
+				}
+
+				mc.Fetch(http.MethodPost, "/update/", bytes.NewReader(b))
 			}
 
-			api.Fetch(http.MethodPost, fmt.Sprintf("update/counter/PollCount/%d", metrics.PollCount), nil)
-			api.Fetch(http.MethodPost, fmt.Sprintf("update/gauge/RandomValue/%.3f", metrics.RandomValue), nil)
+			metrics.CMetrics.AddDelta("PollCount", metrics.PollCount)
+
+			b, err := json.Marshal(metrics.CMetrics)
+			if err != nil {
+				fmt.Println(err)
+				continue
+			}
+
+			mc.Fetch(http.MethodPost, "/update/", bytes.NewReader(b))
 		}
 	}
+}
+
+func init() {
+	flag.StringVar(&address, "a", "localhost:8080", "server address")
+	flag.StringVar(&rawPollInterval, "p", "2s", "poll interval")
+	flag.StringVar(&rawReportInterval, "r", "10s", "report interval")
 }

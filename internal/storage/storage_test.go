@@ -7,37 +7,30 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	ms := &MemStorage{
-		gauge:   map[string]cs.Gauge{},
-		counter: map[string]cs.Counter{},
-	}
+	ms := New("", 0, false)
+	delta := cs.Counter(42)
+	value := cs.Gauge(42.420)
 
 	tests := []struct {
 		name string
-		t    string
-		n    string
-		v    string
+		m    cs.Metrics
 		want error
 	}{
 		{
 			name: "#1",
-			t:    "counter",
-			n:    "metric1",
-			v:    "42",
+			m:    cs.Metrics{ID: "metric1", MType: "counter", Delta: &delta},
 			want: nil,
 		},
 		{
 			name: "#2",
-			t:    "gauge",
-			n:    "metric2",
-			v:    "42.42",
+			m:    cs.Metrics{ID: "metric2", MType: "gauge", Value: &value},
 			want: nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := ms.Update(tt.t, tt.n, tt.v); err != tt.want {
+			if _, err := ms.Update(tt.m.ID, tt.m); err != tt.want {
 				t.Errorf("Add() = %v, want: %v", err, tt.want)
 			}
 		})
