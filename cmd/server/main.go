@@ -15,8 +15,8 @@ import (
 )
 
 var (
-	address, storeFile, rawStoreInterval string
-	restore                              bool
+	address, storeFile, rawStoreInterval, key string
+	restore                                   bool
 )
 
 func main() {
@@ -26,13 +26,14 @@ func main() {
 	storeFile = utils.StringEnv("STORE_FILE", storeFile)
 	rawStoreInterval = utils.StringEnv("STORE_INTERVAL", rawStoreInterval)
 	restore = utils.BoolEnv("RESTORE", restore)
+	key = utils.StringEnv("KEY", key)
 
 	storeInterval, err := time.ParseDuration(rawStoreInterval)
 	if err != nil {
 		log.Fatal("Incorrect parameter: ", rawStoreInterval)
 	}
 
-	ms := storage.New(storeFile, storeInterval.Seconds(), restore)
+	ms := storage.New(storeFile, key, storeInterval.Seconds(), restore)
 	defer ms.Close()
 
 	r := chi.NewRouter()
@@ -55,5 +56,6 @@ func init() {
 	flag.StringVar(&address, "a", "localhost:8080", "server address")
 	flag.StringVar(&storeFile, "f", "/tmp/devops-metrics-db.json", "store file")
 	flag.StringVar(&rawStoreInterval, "i", "300s", "store interval")
+	flag.StringVar(&key, "k", "", "secret key")
 	flag.BoolVar(&restore, "r", true, "restore on start")
 }
