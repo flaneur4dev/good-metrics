@@ -72,7 +72,7 @@ func HandleUpdate(rep Updater) http.HandlerFunc {
 	}
 }
 
-func HandleUpdateJSON(rep Updater) http.HandlerFunc {
+func HandleUpdateJSON(rep Updater, key string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		reqBody, err := io.ReadAll(r.Body)
 		if err != nil {
@@ -87,6 +87,24 @@ func HandleUpdateJSON(rep Updater) http.HandlerFunc {
 			return
 		}
 
+		if key != "" {
+			var msg string
+			switch res.MType {
+			case utils.GaugeName:
+				msg = fmt.Sprintf(utils.GaugeTmpl, res.ID, *res.Value)
+			case utils.CounterName:
+				msg = fmt.Sprintf(utils.CounterTmpl, res.ID, *res.Delta)
+			default:
+				http.Error(w, e.ErrInvalidData.Error(), http.StatusBadRequest)
+				return
+			}
+
+			if !utils.IsEqualSign256(msg, res.Hash, key) {
+				http.Error(w, e.ErrCompromisedData.Error(), http.StatusBadRequest)
+				return
+			}
+		}
+
 		v, err := rep.Update(res.ID, res)
 		if err != nil {
 			sc := http.StatusBadRequest
@@ -95,6 +113,18 @@ func HandleUpdateJSON(rep Updater) http.HandlerFunc {
 			}
 			http.Error(w, err.Error(), sc)
 			return
+		}
+
+		if key != "" {
+			var msg string
+			switch v.MType {
+			case utils.GaugeName:
+				msg = fmt.Sprintf(utils.GaugeTmpl, v.ID, *v.Value)
+			case utils.CounterName:
+				msg = fmt.Sprintf(utils.CounterTmpl, v.ID, *v.Delta)
+			}
+
+			v.Hash = utils.Sign256(msg, key)
 		}
 
 		b, err := json.Marshal(v)
