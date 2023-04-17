@@ -7,7 +7,7 @@ import (
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	cs "github.com/flaneur4dev/good-metrics/internal/contracts"
-	// e "github.com/flaneur4dev/good-metrics/internal/lib/mistakes"
+	e "github.com/flaneur4dev/good-metrics/internal/lib/mistakes"
 	// "github.com/flaneur4dev/good-metrics/internal/lib/utils"
 )
 
@@ -39,11 +39,11 @@ func (ds *DBStorage) AllMetrics() (gm, cm []string) {
 }
 
 func (ds *DBStorage) OneMetric(t, n string) (cs.Metrics, error) {
-	return cs.Metrics{}, nil
+	return cs.Metrics{}, e.ErrNoUsedDB
 }
 
 func (ds *DBStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
-	return cs.Metrics{}, nil
+	return cs.Metrics{}, e.ErrNoUsedDB
 }
 
 func (ds *DBStorage) Check() error {
