@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -43,6 +44,9 @@ func main() {
 	if err != nil {
 		log.Fatal("incorrect parameter: ", rawStoreInterval)
 	}
+
+	fmt.Println("dsn:", dsn)
+	fmt.Println("storeFile:", storeFile)
 
 	var s Storage
 	if dsn != "" {
