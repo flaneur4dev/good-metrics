@@ -27,6 +27,9 @@ type (
 	Updater interface {
 		Update(n string, nm cs.Metrics) (cs.Metrics, error)
 	}
+	Checker interface {
+		Check() error
+	}
 )
 
 func HandleUpdate(rep Updater) http.HandlerFunc {
@@ -171,6 +174,17 @@ func HandleMetricJSON(rep Metric) http.HandlerFunc {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write(b)
+	}
+}
+
+func HandleStorageCheck(rep Checker) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := rep.Check(); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusOK)
 	}
 }
 

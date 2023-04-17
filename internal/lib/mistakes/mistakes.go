@@ -7,4 +7,5 @@ var (
 	ErrUnkownMetricType = errors.New("unknown metric type")
 	ErrInvalidData      = errors.New("invalid data")
 	ErrCompromisedData  = errors.New("compromised data")
+	ErrNoUsedDB         = errors.New("database not used")
 )

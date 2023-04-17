@@ -1,4 +1,4 @@
-package storage
+package memory
 
 import (
 	"encoding/json"
@@ -14,7 +14,7 @@ import (
 type MemStorage struct {
 	metrics       map[string]cs.Metrics
 	filePath      string
-	key      string
+	key           string
 	isRestored    bool
 	storeInterval time.Duration
 	mTimer        *time.Timer
@@ -24,7 +24,7 @@ func New(fp, k string, siv float64, re bool) *MemStorage {
 	ms := &MemStorage{
 		metrics:       map[string]cs.Metrics{},
 		filePath:      fp,
-		key: k,
+		key:           k,
 		isRestored:    re,
 		storeInterval: time.Duration(siv),
 	}
@@ -100,11 +100,16 @@ func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
 	return nm, nil
 }
 
-func (ms *MemStorage) Close() {
+func (ms *MemStorage) Check() error {
+	return e.ErrNoUsedDB
+}
+
+func (ms *MemStorage) Close() error {
 	if ms.mTimer != nil {
 		ms.mTimer.Stop()
 	}
 	ms.toFile()
+	return nil
 }
 
 func (ms *MemStorage) intervalSave() {
