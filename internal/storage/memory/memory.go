@@ -101,6 +101,7 @@ func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
 }
 
 func (ms *MemStorage) Check() error {
+	fmt.Println("ping memory")
 	return e.ErrNoUsedDB
 }
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -46,11 +47,13 @@ func main() {
 
 	var s Storage
 	if dsn != "" && storeFile == "" {
+		fmt.Println("db")
 		s, err = pgdb.New(dsn, key)
 		if err != nil {
 			log.Fatal("can't connect to storage: ", err)
 		}
 	} else {
+		fmt.Println("memory")
 		s = memory.New(storeFile, key, storeInterval.Seconds(), restore)
 	}
 	defer s.Close()

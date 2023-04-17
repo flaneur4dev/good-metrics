@@ -179,6 +179,7 @@ func HandleMetricJSON(rep Metric) http.HandlerFunc {
 
 func HandleStorageCheck(rep Checker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("handler check")
 		if err := rep.Check(); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
