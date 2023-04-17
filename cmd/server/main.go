@@ -46,7 +46,7 @@ func main() {
 	}
 
 	var s Storage
-	if dsn != "" && storeFile == "" {
+	if dsn != "" && storeFile == "/tmp/devops-metrics-db.json" {
 		fmt.Println("db")
 		s, err = pgdb.New(dsn, key)
 		if err != nil {

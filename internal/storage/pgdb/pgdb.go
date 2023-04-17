@@ -22,9 +22,9 @@ func New(source, k string) (*DBStorage, error) {
 		return nil, fmt.Errorf("can't open database: %w", err)
 	}
 
-	if err = db.Ping(); err != nil {
-		return nil, fmt.Errorf("can't connect to database: %w", err)
-	}
+	// if err = db.Ping(); err != nil {
+	// 	return nil, fmt.Errorf("can't connect to database: %w", err)
+	// }
 
 	ds := &DBStorage{
 		db:  db,
