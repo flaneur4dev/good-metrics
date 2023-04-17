@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -45,11 +44,8 @@ func main() {
 		log.Fatal("incorrect parameter: ", rawStoreInterval)
 	}
 
-	fmt.Println("dsn:", dsn)
-	fmt.Println("storeFile:", storeFile)
-
 	var s Storage
-	if dsn != "" {
+	if dsn != "" && storeFile == "" {
 		s, err = pgdb.New(dsn, key)
 		if err != nil {
 			log.Fatal("can't connect to storage: ", err)
