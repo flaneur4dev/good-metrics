@@ -31,6 +31,8 @@ func New(source, k string) (*DBStorage, error) {
 		key: k,
 	}
 
+	fmt.Println("ds:", ds)
+
 	return ds, nil
 }
 
@@ -47,6 +49,7 @@ func (ds *DBStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
 }
 
 func (ds *DBStorage) Check() error {
+	fmt.Println("ping db")
 	if err := ds.db.Ping(); err != nil {
 		return fmt.Errorf("can't connect to database: %w", err)
 	}
