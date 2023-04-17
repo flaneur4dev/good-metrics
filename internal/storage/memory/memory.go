@@ -1,4 +1,4 @@
-package storage
+package memory
 
 import (
 	"encoding/json"
@@ -13,18 +13,20 @@ import (
 
 type MemStorage struct {
 	metrics       map[string]cs.Metrics
-	storeInterval time.Duration
 	filePath      string
+	key           string
 	isRestored    bool
+	storeInterval time.Duration
 	mTimer        *time.Timer
 }
 
-func New(fp string, siv float64, re bool) *MemStorage {
+func New(fp, k string, siv float64, re bool) *MemStorage {
 	ms := &MemStorage{
 		metrics:       map[string]cs.Metrics{},
 		filePath:      fp,
-		storeInterval: time.Duration(siv),
+		key:           k,
 		isRestored:    re,
+		storeInterval: time.Duration(siv),
 	}
 
 	if ms.isRestored {
@@ -66,10 +68,27 @@ func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
 		return cs.Metrics{}, e.ErrUnkownMetricType
 	}
 
+	if ms.key != "" {
+		var msg string
+		switch nm.MType {
+		case utils.GaugeName:
+			msg = fmt.Sprintf(utils.GaugeTmpl, nm.ID, *nm.Value)
+		case utils.CounterName:
+			msg = fmt.Sprintf(utils.CounterTmpl, nm.ID, *nm.Delta)
+		}
+
+		if !utils.IsEqualSign256(msg, nm.Hash, ms.key) {
+			return cs.Metrics{}, e.ErrCompromisedData
+		}
+	}
+
 	if nm.MType == utils.CounterName {
 		if m, ok := ms.metrics[n]; ok {
 			nv := *m.Delta + *nm.Delta
 			nm.Delta = &nv
+
+			msg := fmt.Sprintf(utils.CounterTmpl, nm.ID, *nm.Delta)
+			nm.Hash = utils.Sign256(msg, ms.key)
 		}
 	}
 
@@ -81,11 +100,17 @@ func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
 	return nm, nil
 }
 
-func (ms *MemStorage) Close() {
+func (ms *MemStorage) Check() error {
+	fmt.Println("ping memory")
+	return e.ErrNoUsedDB
+}
+
+func (ms *MemStorage) Close() error {
 	if ms.mTimer != nil {
 		ms.mTimer.Stop()
 	}
 	ms.toFile()
+	return nil
 }
 
 func (ms *MemStorage) intervalSave() {
