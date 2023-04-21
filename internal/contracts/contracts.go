@@ -9,5 +9,6 @@ type (
 		MType string   `json:"type"`
 		Delta *Counter `json:"delta,omitempty"`
 		Value *Gauge   `json:"value,omitempty"`
+		Hash  string   `json:"hash,omitempty"`
 	}
 )

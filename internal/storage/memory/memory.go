@@ -1,4 +1,4 @@
-package storage
+package memory
 
 import (
 	"encoding/json"
@@ -13,18 +13,20 @@ import (
 
 type MemStorage struct {
 	metrics       map[string]cs.Metrics
-	storeInterval time.Duration
 	filePath      string
+	key           string
 	isRestored    bool
+	storeInterval time.Duration
 	mTimer        *time.Timer
 }
 
-func New(fp string, siv float64, re bool) *MemStorage {
+func New(fp, k string, siv float64, re bool) *MemStorage {
 	ms := &MemStorage{
 		metrics:       map[string]cs.Metrics{},
 		filePath:      fp,
-		storeInterval: time.Duration(siv),
+		key:           k,
 		isRestored:    re,
+		storeInterval: time.Duration(siv),
 	}
 
 	if ms.isRestored {
@@ -57,23 +59,22 @@ func (ms *MemStorage) OneMetric(t, n string) (cs.Metrics, error) {
 	return m, nil
 }
 
-func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
-	if n == "" {
-		return cs.Metrics{}, e.ErrInvalidData
-	}
-
-	if !(nm.MType == utils.GaugeName && nm.Value != nil) && !(nm.MType == utils.CounterName && nm.Delta != nil) {
-		return cs.Metrics{}, e.ErrUnkownMetricType
+func (ms *MemStorage) Update(nm cs.Metrics) (cs.Metrics, error) {
+	if err := utils.ValidateMetric(nm, ms.key); err != nil {
+		return cs.Metrics{}, err
 	}
 
 	if nm.MType == utils.CounterName {
-		if m, ok := ms.metrics[n]; ok {
+		if m, ok := ms.metrics[nm.ID]; ok {
 			nv := *m.Delta + *nm.Delta
 			nm.Delta = &nv
+
+			msg := fmt.Sprintf(utils.CounterTmpl, nm.ID, *nm.Delta)
+			nm.Hash = utils.Sign256(msg, ms.key)
 		}
 	}
 
-	ms.metrics[n] = nm
+	ms.metrics[nm.ID] = nm
 	if ms.storeInterval == 0 {
 		ms.toFile()
 	}
@@ -81,11 +82,16 @@ func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
 	return nm, nil
 }
 
-func (ms *MemStorage) Close() {
+func (ms *MemStorage) Check() error {
+	return e.ErrNoUsedDB
+}
+
+func (ms *MemStorage) Close() error {
 	if ms.mTimer != nil {
 		ms.mTimer.Stop()
 	}
 	ms.toFile()
+	return nil
 }
 
 func (ms *MemStorage) intervalSave() {

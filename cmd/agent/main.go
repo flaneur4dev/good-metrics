@@ -14,7 +14,7 @@ import (
 	"github.com/flaneur4dev/good-metrics/internal/metrics"
 )
 
-var address, rawPollInterval, rawReportInterval string
+var address, rawPollInterval, rawReportInterval, key string
 
 func main() {
 	flag.Parse()
@@ -22,6 +22,7 @@ func main() {
 	address = utils.StringEnv("ADDRESS", address)
 	rawPollInterval = utils.StringEnv("POLL_INTERVAL", rawPollInterval)
 	rawReportInterval = utils.StringEnv("REPORT_INTERVAL", rawReportInterval)
+	key = utils.StringEnv("KEY", key)
 
 	pollInterval, err := time.ParseDuration(rawPollInterval)
 	if err != nil {
@@ -46,6 +47,11 @@ func main() {
 			for k, v := range metrics.List {
 				metrics.CMetrics.AddValue(k, v())
 
+				if key != "" {
+					msg := fmt.Sprintf(utils.GaugeTmpl, k, v())
+					metrics.CMetrics.Hash = utils.Sign256(msg, key)
+				}
+
 				b, err := json.Marshal(metrics.CMetrics)
 				if err != nil {
 					fmt.Println(err)
@@ -56,6 +62,11 @@ func main() {
 			}
 
 			metrics.CMetrics.AddDelta("PollCount", metrics.PollCount)
+
+			if key != "" {
+				msg := fmt.Sprintf(utils.CounterTmpl, "PollCount", metrics.PollCount)
+				metrics.CMetrics.Hash = utils.Sign256(msg, key)
+			}
 
 			b, err := json.Marshal(metrics.CMetrics)
 			if err != nil {
@@ -72,4 +83,5 @@ func init() {
 	flag.StringVar(&address, "a", "localhost:8080", "server address")
 	flag.StringVar(&rawPollInterval, "p", "2s", "poll interval")
 	flag.StringVar(&rawReportInterval, "r", "10s", "report interval")
+	flag.StringVar(&key, "k", "", "secret key")
 }

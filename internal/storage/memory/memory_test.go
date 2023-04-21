@@ -1,4 +1,4 @@
-package storage
+package memory
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 )
 
 func TestAdd(t *testing.T) {
-	ms := New("", 0, false)
+	ms := New("", "", 0, false)
 	delta := cs.Counter(42)
 	value := cs.Gauge(42.420)
 
@@ -30,7 +30,7 @@ func TestAdd(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := ms.Update(tt.m.ID, tt.m); err != tt.want {
+			if _, err := ms.Update(tt.m); err != tt.want {
 				t.Errorf("Add() = %v, want: %v", err, tt.want)
 			}
 		})
