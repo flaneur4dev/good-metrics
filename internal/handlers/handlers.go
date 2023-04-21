@@ -25,7 +25,7 @@ type (
 		OneMetric(t, n string) (cs.Metrics, error)
 	}
 	Updater interface {
-		Update(n string, nm cs.Metrics) (cs.Metrics, error)
+		Update(nm cs.Metrics) (cs.Metrics, error)
 	}
 	Checker interface {
 		Check() error
@@ -61,7 +61,7 @@ func HandleUpdate(rep Updater) http.HandlerFunc {
 			res.Delta = &value
 		}
 
-		_, err := rep.Update(res.ID, res)
+		_, err := rep.Update(res)
 		if err != nil {
 			sc := http.StatusBadRequest
 			if errors.Is(err, e.ErrUnkownMetricType) {
@@ -90,7 +90,7 @@ func HandleUpdateJSON(rep Updater) http.HandlerFunc {
 			return
 		}
 
-		v, err := rep.Update(res.ID, res)
+		v, err := rep.Update(res)
 		if err != nil {
 			sc := http.StatusBadRequest
 			if errors.Is(err, e.ErrUnkownMetricType) {
@@ -179,7 +179,6 @@ func HandleMetricJSON(rep Metric) http.HandlerFunc {
 
 func HandleStorageCheck(rep Checker) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("handler check")
 		if err := rep.Check(); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return

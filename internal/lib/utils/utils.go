@@ -8,6 +8,9 @@ import (
 	"log"
 	"os"
 	"strconv"
+
+	cs "github.com/flaneur4dev/good-metrics/internal/contracts"
+	e "github.com/flaneur4dev/good-metrics/internal/lib/mistakes"
 )
 
 const (
@@ -54,4 +57,30 @@ func IsEqualSign256(msg, hash, key string) bool {
 	h := hmac.New(sha256.New, []byte(key))
 	h.Write([]byte(msg))
 	return hmac.Equal(data, h.Sum(nil))
+}
+
+func ValidateMetric(m cs.Metrics, key string) error {
+	if m.ID == "" {
+		return e.ErrInvalidData
+	}
+
+	if !(m.MType == GaugeName && m.Value != nil) && !(m.MType == CounterName && m.Delta != nil) {
+		return e.ErrUnkownMetricType
+	}
+
+	if key != "" {
+		var msg string
+		switch m.MType {
+		case GaugeName:
+			msg = fmt.Sprintf(GaugeTmpl, m.ID, *m.Value)
+		case CounterName:
+			msg = fmt.Sprintf(CounterTmpl, m.ID, *m.Delta)
+		}
+
+		if !IsEqualSign256(msg, m.Hash, key) {
+			return e.ErrCompromisedData
+		}
+	}
+
+	return nil
 }

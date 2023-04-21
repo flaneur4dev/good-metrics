@@ -59,31 +59,35 @@ func (ms *MemStorage) OneMetric(t, n string) (cs.Metrics, error) {
 	return m, nil
 }
 
-func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
-	if n == "" {
-		return cs.Metrics{}, e.ErrInvalidData
+func (ms *MemStorage) Update(nm cs.Metrics) (cs.Metrics, error) {
+	if err := utils.ValidateMetric(nm, ms.key); err != nil {
+		return cs.Metrics{}, err
 	}
 
-	if !(nm.MType == utils.GaugeName && nm.Value != nil) && !(nm.MType == utils.CounterName && nm.Delta != nil) {
-		return cs.Metrics{}, e.ErrUnkownMetricType
-	}
+	// if nm.ID == "" {
+	// 	return cs.Metrics{}, e.ErrInvalidData
+	// }
 
-	if ms.key != "" {
-		var msg string
-		switch nm.MType {
-		case utils.GaugeName:
-			msg = fmt.Sprintf(utils.GaugeTmpl, nm.ID, *nm.Value)
-		case utils.CounterName:
-			msg = fmt.Sprintf(utils.CounterTmpl, nm.ID, *nm.Delta)
-		}
+	// if !(nm.MType == utils.GaugeName && nm.Value != nil) && !(nm.MType == utils.CounterName && nm.Delta != nil) {
+	// 	return cs.Metrics{}, e.ErrUnkownMetricType
+	// }
 
-		if !utils.IsEqualSign256(msg, nm.Hash, ms.key) {
-			return cs.Metrics{}, e.ErrCompromisedData
-		}
-	}
+	// if ms.key != "" {
+	// 	var msg string
+	// 	switch nm.MType {
+	// 	case utils.GaugeName:
+	// 		msg = fmt.Sprintf(utils.GaugeTmpl, nm.ID, *nm.Value)
+	// 	case utils.CounterName:
+	// 		msg = fmt.Sprintf(utils.CounterTmpl, nm.ID, *nm.Delta)
+	// 	}
+
+	// 	if !utils.IsEqualSign256(msg, nm.Hash, ms.key) {
+	// 		return cs.Metrics{}, e.ErrCompromisedData
+	// 	}
+	// }
 
 	if nm.MType == utils.CounterName {
-		if m, ok := ms.metrics[n]; ok {
+		if m, ok := ms.metrics[nm.ID]; ok {
 			nv := *m.Delta + *nm.Delta
 			nm.Delta = &nv
 
@@ -92,7 +96,7 @@ func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
 		}
 	}
 
-	ms.metrics[n] = nm
+	ms.metrics[nm.ID] = nm
 	if ms.storeInterval == 0 {
 		ms.toFile()
 	}
@@ -101,7 +105,6 @@ func (ms *MemStorage) Update(n string, nm cs.Metrics) (cs.Metrics, error) {
 }
 
 func (ms *MemStorage) Check() error {
-	fmt.Println("ping memory")
 	return e.ErrNoUsedDB
 }
 

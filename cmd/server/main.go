@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -20,7 +19,7 @@ import (
 type Storage interface {
 	AllMetrics() ([]string, []string)
 	OneMetric(t, n string) (cs.Metrics, error)
-	Update(n string, nm cs.Metrics) (cs.Metrics, error)
+	Update(nm cs.Metrics) (cs.Metrics, error)
 	Check() error
 	Close() error
 }
@@ -47,13 +46,11 @@ func main() {
 
 	var s Storage
 	if dsn != "" && storeFile == "/tmp/devops-metrics-db.json" {
-		fmt.Println("db")
 		s, err = pgdb.New(dsn, key)
 		if err != nil {
 			log.Fatal("can't connect to storage: ", err)
 		}
 	} else {
-		fmt.Println("memory")
 		s = memory.New(storeFile, key, storeInterval.Seconds(), restore)
 	}
 	defer s.Close()
@@ -63,9 +60,10 @@ func main() {
 
 	r.Get("/", handlers.HandleMetrics(s))
 	r.Get("/ping", handlers.HandleStorageCheck(s))
-	r.Get("/value/{mType}/{mName}", handlers.HandleMetric(s))
 
+	r.Get("/value/{mType}/{mName}", handlers.HandleMetric(s))
 	r.Post("/update/{mType}/{mName}/{mValue}", handlers.HandleUpdate(s))
+
 	r.Post("/value/", handlers.HandleMetricJSON(s))
 	r.Post("/update/", handlers.HandleUpdateJSON(s))
 
