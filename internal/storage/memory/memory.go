@@ -64,28 +64,6 @@ func (ms *MemStorage) Update(nm cs.Metrics) (cs.Metrics, error) {
 		return cs.Metrics{}, err
 	}
 
-	// if nm.ID == "" {
-	// 	return cs.Metrics{}, e.ErrInvalidData
-	// }
-
-	// if !(nm.MType == utils.GaugeName && nm.Value != nil) && !(nm.MType == utils.CounterName && nm.Delta != nil) {
-	// 	return cs.Metrics{}, e.ErrUnkownMetricType
-	// }
-
-	// if ms.key != "" {
-	// 	var msg string
-	// 	switch nm.MType {
-	// 	case utils.GaugeName:
-	// 		msg = fmt.Sprintf(utils.GaugeTmpl, nm.ID, *nm.Value)
-	// 	case utils.CounterName:
-	// 		msg = fmt.Sprintf(utils.CounterTmpl, nm.ID, *nm.Delta)
-	// 	}
-
-	// 	if !utils.IsEqualSign256(msg, nm.Hash, ms.key) {
-	// 		return cs.Metrics{}, e.ErrCompromisedData
-	// 	}
-	// }
-
 	if nm.MType == utils.CounterName {
 		if m, ok := ms.metrics[nm.ID]; ok {
 			nv := *m.Delta + *nm.Delta

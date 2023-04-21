@@ -64,6 +64,12 @@ func (ds *DBStorage) AllMetrics() (gm, cm []string) {
 			cm = append(cm, fmt.Sprintf("%s: %d", i, d.Int64))
 		}
 	}
+
+	if err = rows.Err(); err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	return
 }
 
